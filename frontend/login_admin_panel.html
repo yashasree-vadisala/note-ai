@@ -1,0 +1,366 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>SecurePortal – Login System</title>
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:'Segoe UI',sans-serif;background:#0f172a;min-height:100vh;color:#e2e8f0}
+  .page{display:none;min-height:100vh}
+  .page.active{display:flex}
+
+  /* LOGIN PAGE */
+  #loginPage{align-items:center;justify-content:center;background:linear-gradient(135deg,#0f172a 0%,#1e293b 100%)}
+  .login-card{background:#1e293b;border:1px solid #334155;border-radius:16px;padding:2.5rem;width:100%;max-width:400px;box-shadow:0 25px 50px rgba(0,0,0,0.5)}
+  .login-logo{text-align:center;margin-bottom:2rem}
+  .login-logo .icon{width:56px;height:56px;background:linear-gradient(135deg,#6366f1,#8b5cf6);border-radius:14px;display:inline-flex;align-items:center;justify-content:center;font-size:24px;margin-bottom:.75rem}
+  .login-logo h1{font-size:1.5rem;font-weight:700;color:#f1f5f9}
+  .login-logo p{font-size:.85rem;color:#94a3b8;margin-top:.25rem}
+  .form-group{margin-bottom:1.25rem}
+  .form-group label{display:block;font-size:.8rem;font-weight:600;color:#94a3b8;margin-bottom:.5rem;text-transform:uppercase;letter-spacing:.05em}
+  .form-group input{width:100%;background:#0f172a;border:1px solid #334155;border-radius:8px;padding:.75rem 1rem;font-size:.95rem;color:#f1f5f9;outline:none;transition:border .2s}
+  .form-group input:focus{border-color:#6366f1}
+  .login-btn{width:100%;background:linear-gradient(135deg,#6366f1,#8b5cf6);border:none;border-radius:8px;padding:.85rem;font-size:1rem;font-weight:600;color:#fff;cursor:pointer;transition:opacity .2s;margin-top:.5rem}
+  .login-btn:hover{opacity:.9}
+  .error-msg{background:#7f1d1d;border:1px solid #dc2626;border-radius:8px;padding:.75rem 1rem;font-size:.85rem;color:#fca5a5;margin-top:1rem;display:none}
+
+  /* DASHBOARD */
+  #dashPage{flex-direction:column;background:#0f172a}
+  .topbar{background:#1e293b;border-bottom:1px solid #334155;padding:1rem 1.5rem;display:flex;align-items:center;justify-content:space-between}
+  .topbar .brand{font-size:1.1rem;font-weight:700;color:#f1f5f9}
+  .topbar .user-info{display:flex;align-items:center;gap:.75rem}           
+  .topbar .user-badge{background:#6366f1;border-radius:20px;padding:.3rem .85rem;font-size:.8rem;font-weight:600}
+  .topbar .logout-btn{background:transparent;border:1px solid #475569;border-radius:8px;padding:.4rem .85rem;font-size:.8rem;color:#94a3b8;cursor:pointer;transition:all .2s}
+  .topbar .logout-btn:hover{border-color:#6366f1;color:#a5b4fc}
+  .welcome-banner{background:linear-gradient(135deg,#312e81,#4c1d95);margin:1.5rem;border-radius:12px;padding:1.5rem;display:flex;align-items:center;gap:1rem}
+  .welcome-banner .wb-icon{font-size:2rem}
+  .welcome-banner h2{font-size:1.2rem;font-weight:700;color:#e0e7ff}
+  .welcome-banner p{font-size:.85rem;color:#c4b5fd;margin-top:.2rem}
+  .dash-content{padding:0 1.5rem 1.5rem;flex:1}
+  .info-cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:1rem;margin-bottom:1.5rem}
+  .info-card{background:#1e293b;border:1px solid #334155;border-radius:12px;padding:1.25rem}
+  .info-card .label{font-size:.75rem;color:#64748b;text-transform:uppercase;letter-spacing:.05em;margin-bottom:.4rem}
+  .info-card .value{font-size:1.4rem;font-weight:700;color:#f1f5f9}
+  .info-card .sub{font-size:.78rem;color:#94a3b8;margin-top:.2rem}
+
+  /* ADMIN PAGE */         
+  #adminPage{flex-direction:column;background:#0f172a}
+  .admin-topbar{background:#1e293b;border-bottom:1px solid #334155;padding:1rem 1.5rem;display:flex;align-items:center;gap:1rem}
+  .admin-topbar .back-btn{background:transparent;border:1px solid #475569;border-radius:8px;padding:.4rem .85rem;font-size:.8rem;color:#94a3b8;cursor:pointer;transition:all .2s}
+  .admin-topbar .back-btn:hover{border-color:#6366f1;color:#a5b4fc}
+  .admin-topbar h2{font-size:1.1rem;font-weight:700;color:#f1f5f9;flex:1}
+  .admin-topbar .admin-badge{background:#7c3aed;border-radius:20px;padding:.3rem .85rem;font-size:.75rem;font-weight:700;color:#ede9fe;letter-spacing:.05em}
+  .admin-body{padding:1.5rem;flex:1;overflow:auto}
+  .section{background:#1e293b;border:1px solid #334155;border-radius:12px;margin-bottom:1.5rem;overflow:hidden}
+  .section-header{padding:1rem 1.25rem;border-bottom:1px solid #334155;display:flex;align-items:center;justify-content:space-between}
+  .section-header h3{font-size:.95rem;font-weight:700;color:#e2e8f0}
+  .section-header .count{background:#334155;border-radius:20px;padding:.2rem .65rem;font-size:.75rem;color:#94a3b8}
+  table{width:100%;border-collapse:collapse}
+  th{background:#0f172a;padding:.75rem 1rem;text-align:left;font-size:.75rem;font-weight:600;color:#64748b;text-transform:uppercase;letter-spacing:.05em}
+  td{padding:.75rem 1rem;font-size:.85rem;border-bottom:1px solid #1e293b;color:#cbd5e1}
+  tr:last-child td{border-bottom:none}
+  tr:hover td{background:#162032}
+  .status-badge{display:inline-flex;align-items:center;gap:.3rem;border-radius:20px;padding:.2rem .65rem;font-size:.75rem;font-weight:600}
+  .status-success{background:#14532d;color:#86efac}
+  .status-fail{background:#7f1d1d;color:#fca5a5}
+  .role-admin{background:#312e81;color:#a5b4fc;border-radius:20px;padding:.2rem .65rem;font-size:.75rem;font-weight:600}
+  .role-user{background:#164e63;color:#67e8f9;border-radius:20px;padding:.2rem .65rem;font-size:.75rem;font-weight:600}
+  .empty-state{padding:2.5rem;text-align:center;color:#475569;font-size:.85rem}
+  .clear-btn{background:transparent;border:1px solid #7f1d1d;border-radius:8px;padding:.3rem .75rem;font-size:.75rem;color:#f87171;cursor:pointer;transition:all .2s}
+  .clear-btn:hover{background:#7f1d1d;color:#fca5a5}
+  .admin-link{display:inline-flex;align-items:center;gap:.5rem;background:#312e81;border:none;border-radius:8px;padding:.65rem 1.1rem;font-size:.85rem;font-weight:600;color:#a5b4fc;cursor:pointer;transition:all .2s;margin-bottom:1rem}
+  .admin-link:hover{background:#3730a3}
+</style>
+</head>
+<body>
+
+<!-- ════════════════════════════════════════
+     LOGIN PAGE
+════════════════════════════════════════ -->
+<div id="loginPage" class="page active">
+  <div class="login-card">
+    <div class="login-logo">
+      <div class="icon">🔐</div>
+      <h1>SecurePortal</h1>
+      <p>Sign in to your account</p>
+    </div>
+    <div class="form-group">
+      <label>Username</label>
+      <input type="text" id="username" placeholder="Enter username" autocomplete="off"/>
+    </div>
+    <div class="form-group">
+      <label>Password</label>
+      <input type="password" id="password" placeholder="Enter password"/>
+    </div>
+    <button class="login-btn" onclick="doLogin()">Sign In</button>
+    <div class="error-msg" id="errorMsg">❌ Invalid username or password</div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════ 
+     DASHBOARD PAGE
+════════════════════════════════════════ -->  
+<div id="dashPage" class="page">
+  <div class="topbar">
+    <div class="brand">🏠 Dashboard</div>
+    <div class="user-info">
+      <span id="topbarUser" style="font-size:.85rem;color:#94a3b8"></span>
+      <span id="topbarRole" class="user-badge"></span>
+      <button class="logout-btn" onclick="doLogout()">Logout</button>
+    </div>
+  </div>
+  <div class="welcome-banner">
+    <div class="wb-icon">👋</div>
+    <div>
+      <h2 id="welcomeName">Welcome back!</h2>
+      <p id="welcomeTime"></p>
+    </div>
+  </div>
+  <div class="dash-content">
+    <button class="admin-link" id="adminLinkBtn" onclick="goAdmin()" style="display:none">⚙️ Admin Panel →</button>
+    <div class="info-cards">
+      <div class="info-card">
+        <div class="label">Status</div>
+        <div class="value" style="color:#86efac;font-size:1rem">● Active</div>
+        <div class="sub">Session is live</div>
+      </div>
+      <div class="info-card">
+        <div class="label">Login Time</div>
+        <div class="value" style="font-size:1rem" id="loginTimeCard">—</div>
+        <div class="sub">Current session</div>
+      </div>
+      <div class="info-card">
+        <div class="label">Access Level</div>
+        <div class="value" style="font-size:1rem" id="accessCard">—</div>
+        <div class="sub" id="accessSub">—</div>
+      </div>
+    </div>
+    <div style="background:#1e293b;border:1px solid #334155;border-radius:12px;padding:1.25rem">
+      <p style="font-size:.85rem;color:#64748b;text-transform:uppercase;letter-spacing:.05em;margin-bottom:.75rem">Quick Note</p>
+      <p style="font-size:.9rem;color:#94a3b8;line-height:1.7">You are now securely logged in. Your session is being tracked. Admins can view login history and manage user credentials from the Admin Panel.</p>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════
+     ADMIN PAGE
+════════════════════════════════════════ -->
+<div id="adminPage" class="page">
+  <div class="admin-topbar">
+    <button class="back-btn" onclick="goBack()">← Back</button>
+    <h2>⚙️ Admin Panel</h2>
+    <span class="admin-badge">ADMIN ONLY</span>
+  </div>
+  <div class="admin-body">
+
+    <!-- Registered Users Table -->
+    <div class="section">
+      <div class="section-header">
+        <h3>👤 Registered Users</h3>
+        <span class="count" id="userCount">0 users</span>
+      </div>
+      <table>
+        <thead>
+          <tr><th>Username</th><th>Password</th><th>Role</th><th>Added</th></tr>
+        </thead>
+        <tbody id="userTable">
+          <tr><td colspan="4" class="empty-state">No users registered</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Login History Table -->
+    <div class="section">
+      <div class="section-header">
+        <h3>📋 Login History</h3>
+        <div style="display:flex;gap:.5rem;align-items:center">
+          <span class="count" id="histCount">0 records</span>
+          <button class="clear-btn" onclick="clearHistory()">Clear History</button>
+        </div>
+      </div>
+      <table>
+        <thead>
+          <tr><th>Username</th><th>Date &amp; Time</th><th>Status</th><th>IP (Simulated)</th></tr>
+        </thead>
+        <tbody id="histTable">
+          <tr><td colspan="4" class="empty-state">No login attempts recorded</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+  </div>
+</div>
+
+<script>
+// ─────────────────────────────────────────────────────────────────
+//  STORAGE KEYS
+// ─────────────────────────────────────────────────────────────────
+const USERS_KEY   = 'sp_users';
+const HISTORY_KEY = 'sp_history';
+
+// ─────────────────────────────────────────────────────────────────
+//  DEFAULT USERS  (loaded once on first visit)
+// ─────────────────────────────────────────────────────────────────
+const defaultUsers = [
+  { username: 'admin', password: 'admin123', role: 'admin', added: fmt(new Date()) },
+  { username: 'john',  password: 'john456',  role: 'user',  added: fmt(new Date()) },
+  { username: 'alice', password: 'alice789', role: 'user',  added: fmt(new Date()) }
+];
+
+// ─────────────────────────────────────────────────────────────────
+//  HELPERS
+// ─────────────────────────────────────────────────────────────────
+function fmt(d) {
+  return d.toLocaleDateString('en-IN', { day:'2-digit', month:'short', year:'numeric' }) +
+    ' ' + d.toLocaleTimeString('en-IN', { hour:'2-digit', minute:'2-digit', second:'2-digit' });
+}
+
+function fakeIP() {
+  return '192.168.' + Math.floor(Math.random() * 255) + '.' + Math.floor(Math.random() * 255);
+}
+
+function getUsers() {
+  try { const d = localStorage.getItem(USERS_KEY); return d ? JSON.parse(d) : defaultUsers; }
+  catch(e) { return defaultUsers; }
+}
+function saveUsers(u) {
+  try { localStorage.setItem(USERS_KEY, JSON.stringify(u)); } catch(e) {}
+}
+function getHistory() {
+  try { const d = localStorage.getItem(HISTORY_KEY); return d ? JSON.parse(d) : []; }
+  catch(e) { return []; }
+}
+function saveHistory(h) {
+  try { localStorage.setItem(HISTORY_KEY, JSON.stringify(h)); } catch(e) {}
+}
+
+// Seed default users on first load
+if (!localStorage.getItem(USERS_KEY)) {
+  saveUsers(defaultUsers);
+}
+
+let currentUser = null;
+
+// ─────────────────────────────────────────────────────────────────
+//  LOGIN
+// ─────────────────────────────────────────────────────────────────
+function doLogin() {
+  const u = document.getElementById('username').value.trim();
+  const p = document.getElementById('password').value.trim();
+  const users = getUsers();
+  const found = users.find(x => x.username === u && x.password === p);
+
+  // Record attempt in history
+  const hist = getHistory();
+  hist.unshift({ username: u || '(empty)', time: fmt(new Date()), status: found ? 'success' : 'fail', ip: fakeIP() });
+  saveHistory(hist);
+
+  if (found) {
+    currentUser = found;
+    showDash();
+  } else {
+    const em = document.getElementById('errorMsg');
+    em.style.display = 'block';
+    setTimeout(() => em.style.display = 'none', 3000);
+  }
+}
+
+// Allow Enter key on inputs
+document.getElementById('password').addEventListener('keydown', e => { if (e.key === 'Enter') doLogin(); });
+document.getElementById('username').addEventListener('keydown', e => { if (e.key === 'Enter') document.getElementById('password').focus(); });
+
+// ─────────────────────────────────────────────────────────────────
+//  DASHBOARD
+// ─────────────────────────────────────────────────────────────────
+function showDash() {
+  setPage('dashPage');
+  const now = new Date();
+  document.getElementById('topbarUser').textContent = currentUser.username;
+  document.getElementById('topbarRole').textContent = currentUser.role.toUpperCase();
+  document.getElementById('topbarRole').style.background = currentUser.role === 'admin' ? '#7c3aed' : '#0e7490';
+  document.getElementById('welcomeName').textContent = 'Welcome back, ' + currentUser.username + '!';
+  document.getElementById('welcomeTime').textContent  = 'Logged in at ' + fmt(now);
+  document.getElementById('loginTimeCard').textContent = now.toLocaleTimeString('en-IN', { hour:'2-digit', minute:'2-digit' });
+  document.getElementById('accessCard').textContent   = currentUser.role === 'admin' ? 'Administrator' : 'Standard';
+  document.getElementById('accessSub').textContent    = currentUser.role === 'admin' ? 'Full access' : 'Limited access';
+
+  // Show Admin Panel button only for admins
+  document.getElementById('adminLinkBtn').style.display = currentUser.role === 'admin' ? 'inline-flex' : 'none';
+}
+
+// ─────────────────────────────────────────────────────────────────
+//  ADMIN PANEL
+// ─────────────────────────────────────────────────────────────────
+function goAdmin() {
+  if (!currentUser || currentUser.role !== 'admin') return; // guard
+  setPage('adminPage');
+  renderAdmin();
+}
+
+function goBack() {
+  setPage('dashPage');
+}
+
+function renderAdmin() {
+  const users = getUsers();
+  const hist  = getHistory();
+
+  // ── Users table ──
+  document.getElementById('userCount').textContent = users.length + ' user' + (users.length !== 1 ? 's' : '');
+  const ut = document.getElementById('userTable');
+  if (!users.length) {
+    ut.innerHTML = '<tr><td colspan="4" class="empty-state">No users registered</td></tr>';
+  } else {
+    ut.innerHTML = users.map(u => `
+      <tr>
+        <td><strong style="color:#f1f5f9">${u.username}</strong></td>
+        <td><code style="background:#0f172a;padding:.15rem .45rem;border-radius:4px;font-size:.8rem;color:#94a3b8">${u.password}</code></td>
+        <td><span class="${u.role === 'admin' ? 'role-admin' : 'role-user'}">${u.role}</span></td>
+        <td style="color:#64748b;font-size:.78rem">${u.added}</td>
+      </tr>`).join('');
+  }
+
+  // ── History table ──
+  document.getElementById('histCount').textContent = hist.length + ' record' + (hist.length !== 1 ? 's' : '');
+  const ht = document.getElementById('histTable');
+  if (!hist.length) {
+    ht.innerHTML = '<tr><td colspan="4" class="empty-state">No login attempts recorded</td></tr>';
+  } else {
+    ht.innerHTML = hist.map(h => `
+      <tr>
+        <td><strong style="color:#f1f5f9">${h.username}</strong></td>
+        <td style="font-size:.8rem;color:#64748b">${h.time}</td>
+        <td><span class="status-badge ${h.status === 'success' ? 'status-success' : 'status-fail'}">${h.status === 'success' ? '✓ Success' : '✗ Failed'}</span></td>
+        <td style="font-family:monospace;font-size:.78rem;color:#64748b">${h.ip}</td>
+      </tr>`).join('');
+  }
+}
+
+function clearHistory() {
+  if (confirm('Clear all login history? This cannot be undone.')) {
+    saveHistory([]);
+    renderAdmin();
+  }
+}
+
+// ─────────────────────────────────────────────────────────────────
+//  LOGOUT
+// ─────────────────────────────────────────────────────────────────
+function doLogout() {
+  currentUser = null;
+  document.getElementById('username').value = '';
+  document.getElementById('password').value = '';
+  setPage('loginPage');
+}
+
+// ─────────────────────────────────────────────────────────────────
+//  PAGE SWITCHER
+// ─────────────────────────────────────────────────────────────────
+function setPage(id) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+}
+</script>
+</body>
+</html>
