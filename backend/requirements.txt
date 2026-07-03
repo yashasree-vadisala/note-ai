@@ -1,0 +1,9 @@
+fastapi
+uvicorn
+python-dotenv
+pydantic
+requests
+youtube-transcript-api==0.6.2
+google-genai
+yt-dlp
+python-multipart
