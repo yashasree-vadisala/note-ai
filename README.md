@@ -132,4 +132,4 @@ Generated content is displayed through the frontend dashboard.
 
 ---
 
-## ⭐ If you found this project useful, consider giving it a star!
+
